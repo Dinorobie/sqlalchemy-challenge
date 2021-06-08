@@ -8,6 +8,7 @@ import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func, inspect
+from flask import Flask, jsonify
 
 # create engine to hawaii.sqlite
 engine = create_engine("sqlite:///hawaii.sqlite")
@@ -51,8 +52,8 @@ def stations():
     # Query all Stations
     results = session.query(Station.station).\
                  order_by(Station.station).all()
-
-    session.close()
+    stations=list(np.ravel(results))
+    return jsonify(stations)
 @app.route("/api/v1.0/precipitation")
 def precipitation():
     # Calculate the date 1 year ago from last date in database
@@ -79,6 +80,26 @@ def temp_monthly():
 
     # Unravel results into a 1D array and convert to a list
     temps = list(np.ravel(results))
+    return jsonify(temps)
+
+@app.route("/api/v1.0/<start>")
+
+def start_year(start=None):
+ 
+    result= session.query(Measurement.date,func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
+    filter(Measurement.date >=start).all()
+    start_temp=list(np.ravel(result))
+    return jsonify (start_temp)
+
+@app.route("/api/v1.0/<start>/<end>")
+def end_year(start=None, end=None):
+    result2= session.query(Measurement.date,func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
+    filter(Measurement.date >=start).filter(Measurement.date<=end).all()
+    start_temp2=list(np.ravel(result2))
+    return jsonify (start_temp2)
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
+
